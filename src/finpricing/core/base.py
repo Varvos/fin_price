@@ -30,7 +30,7 @@ class InstrumentParams(BaseModel):
 class OptionParams(InstrumentParams):
     """Option-specific parameters"""
     strike_price: float = Field(gt=0, description="Strike price")
-    option_type: str = Field(regex='^(call|put)$', description="Option type")
+    option_type: str = Field(pattern='^(call|put)$', description="Option type")
 
 
 class ModelConfig(BaseModel):
