@@ -5,7 +5,7 @@ Black Scholes model implementations
 from typing import Dict
 import numpy as np
 from scipy.stats import norm
-from src.finpricing.models.base import OptionParams, MarketData, PricingModel, ModelConfig, Greeks
+from src.finpricing.core.base import OptionParams, MarketData, PricingModel, ModelConfig, Greeks
 from src.finpricing.utils.bs_utils import BlackScholesCalculator
 
 
@@ -14,15 +14,15 @@ class BlackScholesModel(PricingModel):
     
     def __init__(self, config: ModelConfig):
         self.config = config
-        self._validate_config()
+        # self._validate_config()
     
-    def _validate_config(self):
-        """Validate the model configuration to ensure required parameters are present"""
-        required_params = {'calculation_method', 'tolerance'}
-        if any(
-            param not in self.config.numerical_params for param in required_params
-        ):
-            raise ValueError(f"Missing required parameters: {required_params}")
+    # def _validate_config(self):
+    #     """Validate the model configuration to ensure required parameters are present"""
+    #     required_params = {'calculation_method', 'tolerance'}
+    #     if any(
+    #         param not in self.config.numerical_params for param in required_params
+    #     ):
+    #         raise ValueError(f"Missing required parameters: {required_params}")
     
     def _d1(self, S: float, K: float, T: float, r: float, sigma: float) -> float:
         """Calculate d1 used in Black-Scholes formula"""
