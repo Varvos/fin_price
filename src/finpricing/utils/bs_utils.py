@@ -4,12 +4,14 @@ Utility module for Black-Scholes calculations
 import numpy as np
 from scipy.stats import norm
 from scipy.special import ndtr
+from functools import lru_cache
 
 
 class BlackScholesCalculator:
     """Utility class for Black-Scholes calculations."""
 
     @staticmethod
+    @lru_cache(maxsize=128)
     def calculate_d1_d2(s: float, k: float, t: float, r: float, sigma: float):
         """
         Calculate the d1 and d2 terms for the Black-Scholes model.
@@ -39,3 +41,5 @@ class BlackScholesCalculator:
         """Calculate Vega of the option"""
         d1, _ = BlackScholesCalculator.calculate_d1_d2(s, k, t, r, sigma)
         return s * norm.pdf(d1) * np.sqrt(t)
+
+
