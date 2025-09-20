@@ -4,7 +4,7 @@ Characteristic functions for various models
 import numpy as np
 import scipy.integrate as integ
 
-from src.finpricing.core.vix_parameters import (
+from finpricing.models.parameters import (
     VIXBlackScholesModelParameters,
     VIXMertonModelParameters,
     VIXKouModelParameters,
@@ -84,11 +84,21 @@ def characteristic_function(
 ) -> complex:
     """
     General characteristic function dispatcher.
+    
+    Args:
+        u: Complex frequency parameter
+        T: Time to maturity
+        params: Model parameters (VIX Black-Scholes, Merton, or Kou)
+        asset_type: Asset type ('VIX' or 'var_swap')
+    
+    TODO: Add input parameter validation
+    TODO: Consider supporting additional asset types beyond VIX and var_swap
     """
+    # Mathematical constants from the characteristic function formulas
     if asset_type == 'VIX':
-        cf1, cf2 = 0.5, 1 / 8
+        cf1, cf2 = 0.5, 1 / 8  # VIX-specific constants
     elif asset_type == 'var_swap':
-        cf1, cf2 = 1.0, 0.5
+        cf1, cf2 = 1.0, 0.5   # Variance swap constants
     else:
         raise ValueError(f"Unknown asset type: {asset_type}")
 

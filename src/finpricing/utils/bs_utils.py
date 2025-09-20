@@ -43,3 +43,38 @@ class BlackScholesCalculator:
         return s * norm.pdf(d1) * np.sqrt(t)
 
 
+# Convenience functions for backward compatibility with notebook code
+def bs_call(s: float, k: float, t: float, r: float, sigma: float) -> float:
+    """
+    Black-Scholes call option price.
+    
+    Args:
+        s: Current stock price
+        k: Strike price
+        t: Time to maturity
+        r: Risk-free rate
+        sigma: Volatility
+        
+    Returns:
+        Call option price
+    """
+    return BlackScholesCalculator.call_price(s, k, t, r, sigma)
+
+
+def bs_put(s: float, k: float, t: float, r: float, sigma: float) -> float:
+    """
+    Black-Scholes put option price.
+    
+    Args:
+        s: Current stock price
+        k: Strike price  
+        t: Time to maturity
+        r: Risk-free rate
+        sigma: Volatility
+        
+    Returns:
+        Put option price
+    """
+    return BlackScholesCalculator.put_price(s, k, t, r, sigma)
+
+
