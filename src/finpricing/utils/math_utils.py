@@ -5,7 +5,7 @@ import numpy as np
 
 def generate_grid(start: float, step: float, num: int) -> np.ndarray:
     """Generate a grid of equally spaced values."""
-    return np.array([start + k * step for k in range(num)])
+    return np.linspace(start, start + step * (num - 1), num)
 
 
 def compute_weights(num: int, method: str = "trapezoidal") -> np.ndarray:

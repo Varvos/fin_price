@@ -23,7 +23,7 @@ def get_vix_prices(Vi_0: np.ndarray, diff_V: np.ndarray, jump_V: np.ndarray,
     Returns:
         VT_i: Values at tenor dates
     """
-    from finpricing.utils.vix_utils import vix_drift_coeff
+    from finpricing.models.vix.utils import vix_drift_coeff
     
     # Get the constant drift terms \int_0^T_i mu_i(t)dt
     m = len(tenor_dates)-1
@@ -80,18 +80,14 @@ def get_UTm(Vi_0, VT_i, diff_Z, jumps_S, sigmas_sq, b_i, tenor_dates, model_para
     # Compute the coefficients in u_i(., x)
     ui_factors = np.sqrt(VT_i/Vi_0)*b_i
 
-    model_type = model_params.model_type
-    # Compute the integral ∫(e^(u_i(., x)) - 1) v(dx) in the drift term
     lmbd = model_params.lmbd
-    
-    # Unpack the model parameters
-    if model_type == 'Merton':
-        m, delta = model_params.m, model_params.delta
-        integral = lmbd*(np.exp((m*ui_factors + 0.5*(delta**2)*(ui_factors**2))) - 1)
-        
-    elif model_type == 'Kou':
-        p, a_plus, a_minus = model_params.p, model_params.alpha_plus, model_params.alpha_minus
-        integral = lmbd*(p*a_plus/(a_plus-ui_factors) + (1-p)*a_minus/(a_minus+ui_factors) - 1)
+
+    match model_params:
+        case VIXMertonModelParameters():
+            integral = lmbd * (np.exp(model_params.m * ui_factors + 0.5 * (model_params.delta**2) * (ui_factors**2)) - 1)
+        case VIXKouModelParameters():
+            a_plus, a_minus = model_params.alpha_plus, model_params.alpha_minus
+            integral = lmbd * (model_params.p * a_plus / (a_plus - ui_factors) + (1 - model_params.p) * a_minus / (a_minus + ui_factors) - 1)
 
     drift_term = np.sum(-(0.5*(model_params.rho**2)*sigmas_sq + integral)*np.diff(tenor_dates), axis=1)
 
@@ -182,7 +178,7 @@ class VixModel:
         Returns:
             Option price
         """
-        from finpricing.pricing_methods.vix_pricing import price_vix_options
+        from finpricing.models.vix.pricing import price_vix_options
         return price_vix_options(S0, K, T, r, self.params, pricing_method, option_type)
     
     def index_option_pricer(self, S0, strikes, tenor_index, r=0., option_type='call'):
@@ -199,10 +195,10 @@ class VixModel:
         Returns:
             Array of option prices
         """
-        if self._stored_data == []:
+        if not self._stored_data:
             self.store_tenor_data()
         
-        from finpricing.pricing_methods.vix_pricing import price_index_options
+        from finpricing.models.vix.pricing import price_index_options
         return price_index_options(S0, self.Vi_0, strikes, r, self.tenor_dates[:tenor_index+1],
                                   self._stored_data, self.b_i, self.params, option_type)
 

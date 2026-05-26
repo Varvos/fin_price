@@ -1,11 +1,13 @@
 """
 Parameter definitions for characteristic functions
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class BasicModelParameters(BaseModel):
     """Base model parameters shared across different models"""
+    model_config = ConfigDict(frozen=True)
+
     model_type: str = Field(..., description="Type of the model (e.g., 'Black-Scholes', 'Merton', 'Kou')")
 
 

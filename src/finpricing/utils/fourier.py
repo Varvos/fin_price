@@ -4,8 +4,8 @@ Fourier-Based Call Option Pricing
 from enum import Enum
 import numpy as np
 from scipy.fft import fft
-from typing import Callable, Tuple
-from finpricing.pricing_methods.characteristic_functions import black_scholes_characteristic_function
+from typing import Callable
+from finpricing.utils.characteristic_functions import black_scholes_characteristic_function
 from finpricing.utils.math_utils import generate_grid, compute_weights
 
 
@@ -69,7 +69,7 @@ def fourier_call_pricer(
     s_0: float = 0.0,
     method: FourierMethod = FourierMethod.CONT_TANKOV,
     **kwargs
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Fourier-based call option pricer.
     """
