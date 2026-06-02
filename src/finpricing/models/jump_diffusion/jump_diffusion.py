@@ -5,6 +5,13 @@ import numpy as np
 from scipy.integrate import quad_vec
 from finpricing.parameters import VIXMertonModelParameters, VIXKouModelParameters
 
+try:
+    from finpricing._sim import simul_total_jumps_merton as _rust_merton
+    from finpricing._sim import simul_total_jumps_kou as _rust_kou
+    _RUST_AVAILABLE = True
+except ImportError:
+    _RUST_AVAILABLE = False
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                               DRIFT TERMS                                       #
@@ -97,6 +104,16 @@ def simul_total_jumps(
     if T1 < 0 or T2 <= T1:
         raise ValueError("T1 must be non-negative and T2 must be greater than T1.")
 
+    if _RUST_AVAILABLE:
+        match model_params:
+            case VIXMertonModelParameters():
+                return _rust_merton(num_paths, T1, T2, model_params.lmbd, model_params.k2, model_params.m, model_params.delta)
+            case VIXKouModelParameters():
+                return _rust_kou(num_paths, T1, T2, model_params.lmbd, model_params.k2, model_params.p, model_params.alpha_plus, model_params.alpha_minus)
+            case _:
+                raise ValueError("Unsupported model parameters.")
+
+    # Pure-Python fallback
     match model_params:
         case VIXMertonModelParameters():
             lmbd = model_params.lmbd
@@ -108,7 +125,11 @@ def simul_total_jumps(
             raise ValueError("Unsupported model parameters. Must be VIXMertonModelParameters or VIXKouModelParameters.")
 
     jump_counts = np.random.poisson(lmbd * (T2 - T1), size=num_paths)
-    max_jumps = np.max(jump_counts)
+    max_jumps = int(np.max(jump_counts))
+
+    if max_jumps == 0:
+        return np.zeros(num_paths), np.zeros(num_paths)
+
     jump_times = np.random.uniform(low=T1, high=T2, size=(num_paths, max_jumps))
 
     match model_params:
@@ -118,11 +139,12 @@ def simul_total_jumps(
             p = model_params.p
             jump_directions = np.random.choice([1, -1], size=(num_paths, max_jumps), p=[p, 1 - p])
             jump_sizes = jump_directions * np.random.exponential(
-                scale=(jump_directions > 0) * 1 / model_params.alpha_plus + (jump_directions < 0) * 1 / model_params.alpha_minus,
+                scale=(jump_directions > 0) / model_params.alpha_plus + (jump_directions < 0) / model_params.alpha_minus,
                 size=(num_paths, max_jumps),
             )
 
-    mask = jump_counts[:, None] > 0
+    # mask[i, j] = True only when j < jump_counts[i] — excludes phantom samples
+    mask = np.arange(max_jumps)[None, :] < jump_counts[:, None]
     total_jumps = np.sum(jump_sizes * mask, axis=1)
     exp_weighted_jumps = np.sum(jump_sizes * np.exp(k2 * jump_times) * mask, axis=1)
 

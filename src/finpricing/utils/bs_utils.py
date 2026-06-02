@@ -13,7 +13,7 @@ class BlackScholesCalculator:
         """
         Calculate the d1 and d2 terms for the Black-Scholes model.
         """
-        if any(param <= 0 for param in (s, k, t, sigma)):
+        if np.any(np.asarray(s) <= 0) or k <= 0 or t <= 0 or np.any(np.asarray(sigma) <= 0):
             raise ValueError("Stock price, strike price, time to maturity, and volatility must be positive.")
 
         log_money = np.log(s / k)
