@@ -53,6 +53,9 @@ Reproduces the key figures from Cont & Kokholm (2014): VIX option smile,
 index option implied-volatility surface, and martingale validation.
 
 ```bash
+# install notebook extras (ipykernel, matplotlib) — only needed for notebooks
+uv sync --extra notebook
+
 uv run jupyter lab
 # open notebooks/01_cont_kokholm_replication.ipynb
 ```
