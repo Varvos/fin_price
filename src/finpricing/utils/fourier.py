@@ -46,9 +46,10 @@ def cont_tankov_pricer(
 
 def kar_madan_pricer(chr_func: Callable[[complex], complex], T: float, r: float, s_0: float, N: int, Delta: float, alpha: float) -> np.ndarray:
     """Fourier pricing using Kar & Madan method."""
-    # Integration grid
-    xs = generate_grid(0, Delta, N)
-    us = generate_grid(-N * Delta / 2 + s_0, Delta, N)
+    d = 2 * np.pi / (N * Delta)  # output grid step (dual to integration step Delta)
+
+    xs = generate_grid(0, Delta, N)               # integration frequencies
+    us = generate_grid(-N * d / 2 + s_0, d, N)   # log-moneyness output grid
 
     # Modified characteristic function
     zeta_T = np.exp(-r * T) * chr_func(xs - (alpha + 1) * 1j)
@@ -58,7 +59,7 @@ def kar_madan_pricer(chr_func: Callable[[complex], complex], T: float, r: float,
     w = compute_weights(N, method="simpson")
 
     # Inverse Fourier Transform
-    zs = fft(zeta_T * np.exp((N * Delta / 2 - s_0) * 1j * xs) * w) * Delta
+    zs = fft(zeta_T * np.exp((N * d / 2 - s_0) * 1j * xs) * w) * Delta
     return np.exp(-alpha * us) * zs.real / np.pi
 
 
@@ -88,5 +89,6 @@ def fourier_call_pricer(
     else:
         raise ValueError(f"Unsupported Fourier pricing method: {method}")
 
-    us = generate_grid(-N * Delta / 2 + s_0, Delta, N)
+    d = 2 * np.pi / (N * Delta)
+    us = generate_grid(-N * d / 2 + s_0, d, N)
     return us, zs

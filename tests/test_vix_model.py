@@ -27,8 +27,7 @@ class TestVixOptionPricerSmoke:
         model = VixModel(model_type=model_name)
         price = model.vix_option_pricer(V0, K=0.20, T=TENOR_DATES[1], r=R, option_type=option_type)
         assert np.isfinite(price), "price must be finite"
-        # allow tiny numerical noise from Fourier interpolation
-        assert price >= -1e-3, f"option price too negative: {price}"
+        assert price >= 0.0, f"option price must be non-negative: {price}"
 
     @pytest.mark.parametrize("model_name", ["Merton", "Kou"])
     def test_deep_otm_near_zero(self, model_name):
