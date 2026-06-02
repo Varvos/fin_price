@@ -30,6 +30,7 @@ dev = [
     "pytest-cov>=5.0",
     "mypy>=1.10",
     "ruff>=0.4",
+    "maturin>=1.5",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -38,6 +39,7 @@ packages = ["src/finpricing"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
+pythonpath = ["src"]
 
 [tool.ruff]
 src = ["src"]
@@ -47,6 +49,14 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["E501"]
+
+# Rust extension — build with: maturin develop --release
+# The compiled _sim.so drops into src/finpricing/ automatically.
+# Pure-Python fallback is used automatically when the extension is absent.
+[tool.maturin]
+python-source = "src"
+module-name   = "finpricing._sim"
+bindings      = "pyo3"
 
 [tool.mypy]
 python_version = "3.12"
