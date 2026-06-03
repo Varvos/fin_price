@@ -4,7 +4,7 @@ Characteristic functions for various models
 import numpy as np
 import scipy.integrate as integ
 
-from finpricing.models.parameters import (
+from finpricing.parameters import (
     VIXBlackScholesModelParameters,
     VIXMertonModelParameters,
     VIXKouModelParameters,
@@ -80,33 +80,34 @@ def kou_characteristic_function(
 
 
 def characteristic_function(
-    u: complex, T: float, params, asset_type: str = 'VIX'
+    u: complex,
+    T: float,
+    params: VIXBlackScholesModelParameters | VIXMertonModelParameters | VIXKouModelParameters,
+    asset_type: str = 'VIX',
 ) -> complex:
     """
     General characteristic function dispatcher.
-    
-    Args:
-        u: Complex frequency parameter
-        T: Time to maturity
-        params: Model parameters (VIX Black-Scholes, Merton, or Kou)
-        asset_type: Asset type ('VIX' or 'var_swap')
-    
-    TODO: Add input parameter validation
-    TODO: Consider supporting additional asset types beyond VIX and var_swap
-    """
-    # Mathematical constants from the characteristic function formulas
-    if asset_type == 'VIX':
-        cf1, cf2 = 0.5, 1 / 8  # VIX-specific constants
-    elif asset_type == 'var_swap':
-        cf1, cf2 = 1.0, 0.5   # Variance swap constants
-    else:
-        raise ValueError(f"Unknown asset type: {asset_type}")
 
-    if isinstance(params, VIXBlackScholesModelParameters):
-        return black_scholes_characteristic_function(u, T, params.sigma)
-    elif isinstance(params, VIXMertonModelParameters):
-        return merton_characteristic_function(u, T, params, cf1, cf2)
-    elif isinstance(params, VIXKouModelParameters):
-        return kou_characteristic_function(u, T, params, cf1, cf2)
-    else:
-        raise ValueError(f"Unsupported model type: {params.model_type}")
+    Args:
+        u: Complex frequency parameter.
+        T: Time to maturity.
+        params: Model parameters (VIX Black-Scholes, Merton, or Kou).
+        asset_type: Asset type ('VIX' or 'var_swap').
+    """
+    match asset_type:
+        case 'VIX':
+            cf1, cf2 = 0.5, 1 / 8
+        case 'var_swap':
+            cf1, cf2 = 1.0, 0.5
+        case _:
+            raise ValueError(f"Unknown asset type: {asset_type}")
+
+    match params:
+        case VIXBlackScholesModelParameters():
+            return black_scholes_characteristic_function(u, T, params.sigma)
+        case VIXMertonModelParameters():
+            return merton_characteristic_function(u, T, params, cf1, cf2)
+        case VIXKouModelParameters():
+            return kou_characteristic_function(u, T, params, cf1, cf2)
+        case _:
+            raise ValueError(f"Unsupported model type: {params.model_type}")

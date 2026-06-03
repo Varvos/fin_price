@@ -3,10 +3,10 @@ VIX pricing functions using various methods
 """
 import numpy as np
 from scipy import interpolate
-from finpricing.pricing_methods.characteristic_functions import characteristic_function
-from finpricing.pricing_methods.fourier_pricing import fourier_call_pricer, FourierMethod
+from finpricing.utils.characteristic_functions import characteristic_function
+from finpricing.utils.fourier import fourier_call_pricer, FourierMethod
 from finpricing.utils.bs_utils import bs_call
-from finpricing.models.vix_model import get_sigmas, get_UTm
+from finpricing.models.vix.model import get_sigmas, get_UTm
 
 
 def price_vix_options(V0: float, K: float, T: float, r: float, model_params, 
@@ -74,13 +74,13 @@ def price_index_options(S0, Vi_0, strikes, r, tenor_dates, stored_data, b_i, mod
     # Compute the sigma_i
     lmbd, rho = model_params.lmbd, model_params.rho
     
-    model_type = model_params.model_type
-    if model_type == 'Kou':
-        constraint_cf = 2*model_params.lmbd*(model_params.p/model_params.alpha_plus**2 +
-                           (1-model_params.p)/model_params.alpha_minus**2)
-        
-    elif model_type == 'Merton':
-        constraint_cf = model_params.lmbd*(model_params.m**2 + model_params.delta**2)
+    from finpricing.parameters import VIXMertonModelParameters, VIXKouModelParameters
+    match model_params:
+        case VIXKouModelParameters():
+            constraint_cf = 2 * model_params.lmbd * (model_params.p / model_params.alpha_plus**2 +
+                               (1 - model_params.p) / model_params.alpha_minus**2)
+        case VIXMertonModelParameters():
+            constraint_cf = model_params.lmbd * (model_params.m**2 + model_params.delta**2)
     
     sigmas_sq = get_sigmas(Vi_0[:k], VTi[:,:k], constraint_cf, b_i[:k])
     

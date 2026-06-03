@@ -1,8 +1,7 @@
 """
 VIX utility functions
 """
-from finpricing.models.parameters import VIXMertonModelParameters, VIXKouModelParameters
-from finpricing.pricing_methods.vix_pricing import price_vix_options
+from finpricing.parameters import VIXMertonModelParameters, VIXKouModelParameters
 
 
 def vix_drift_coeff(T: float, model_params) -> float:

@@ -1,14 +1,14 @@
 """
 Module for Implied Volatility Calculations
 """
-
 from dataclasses import dataclass
 from enum import Enum
 import numpy as np
 from scipy.optimize import root, brentq, newton
-from typing import Callable, List
+from typing import Callable
 
 from finpricing.utils.bs_utils import BlackScholesCalculator
+
 
 class Method(Enum):
     HYBR = 'hybr'
@@ -16,6 +16,7 @@ class Method(Enum):
     BRENTQ = 'brentq'
     NEWTON = 'newton'
     ITERATIVE = 'iterative'
+
 
 @dataclass
 class ImpliedVolatilityParams:
@@ -28,25 +29,18 @@ class ImpliedVolatilityParams:
     method: Method = Method.ITERATIVE
     guess_method: str = 'improved'
 
+
 class ImpliedVolatilityCalculator:
     """
     A class to calculate the implied volatility of options using various methods.
     """
 
-    ROOT_METHODS: List[Method] = [
+    ROOT_METHODS: list[Method] = [
         Method.HYBR,
         Method.LM,
-        # 'broyden1',
-        # 'broyden2',
-        # 'anderson',
-        # 'linearmixing',
-        # 'diagbroyden',
-        # 'excitingmixing',
-        # 'krylov',
-        # 'df-sane',
     ]
 
-    ALL_METHODS: List[Method] = ROOT_METHODS + [Method.BRENTQ, Method.NEWTON, Method.ITERATIVE]
+    ALL_METHODS: list[Method] = ROOT_METHODS + [Method.BRENTQ, Method.NEWTON, Method.ITERATIVE]
 
     @staticmethod
     def corrado_miller_guess(params: ImpliedVolatilityParams) -> float:
@@ -59,7 +53,7 @@ class ImpliedVolatilityCalculator:
         guess = (exp2 + (params.call_value - exp1 / 2) +
                  np.sqrt((params.call_value - exp1 / 2) ** 2 - exp1 ** 2 / np.pi)) / np.sqrt(params.t)
 
-        return max(guess, 1e-8)  # Ensure the guess is positive
+        return max(guess, 1e-8)
 
     @staticmethod
     def improved_guess(params: ImpliedVolatilityParams) -> float:
@@ -80,7 +74,7 @@ class ImpliedVolatilityCalculator:
         """
         Calculate implied volatility using an iterative method.
         """
-        vol = 0.5  # Initial guess
+        vol = 0.5
         max_iter = 300
         upper, lower = 5.0, 0.0
 
@@ -106,13 +100,13 @@ class ImpliedVolatilityCalculator:
         def value_diff(vol: float) -> float:
             return BlackScholesCalculator.call_price(params.s, params.k, params.t, params.r, vol) - params.call_value
 
-        # Select initial guess
-        if params.guess_method == 'improved':
-            x0 = ImpliedVolatilityCalculator.improved_guess(params)
-        elif params.guess_method == 'corrado_miller':
-            x0 = ImpliedVolatilityCalculator.corrado_miller_guess(params)
-        else:
-            x0 = 0.25  # Default guess
+        match params.guess_method:
+            case 'improved':
+                x0 = ImpliedVolatilityCalculator.improved_guess(params)
+            case 'corrado_miller':
+                x0 = ImpliedVolatilityCalculator.corrado_miller_guess(params)
+            case _:
+                x0 = 0.25
 
         if params.method in ImpliedVolatilityCalculator.ROOT_METHODS:
             result = root(value_diff, x0, tol=params.tol, method=params.method.value)
