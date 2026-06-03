@@ -64,14 +64,14 @@ uv run jupyter lab
 
 ## Dashboard
 
-> **Coming soon.** An interactive Dash application for live option pricing,
-> volatility surface visualisation, and model calibration.
->
-> Once implemented, run with:
-> ```bash
-> uv run python app/main.py
-> # open http://localhost:8050
-> ```
+Four-page Dash app: Black-Scholes pricer, VIX option smile, live SPX vol surface, and index option MC smile.
+
+```bash
+uv sync --extra app
+
+cd app && uv run python main.py
+# open http://localhost:8050
+```
 
 ---
 
